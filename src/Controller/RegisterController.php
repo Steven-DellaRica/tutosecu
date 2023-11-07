@@ -82,4 +82,35 @@ class RegisterController extends AbstractController
             return $this->redirectToRoute('app_register');
         }
     }
+
+    #[Route('/register/update/{id}', name:'app_update')]
+    public function updateUser(int $id, Request $request, UserPasswordHasherInterface $userPasswordHasher){
+        $cleanId = UtilsService::cleanInput($id);
+        $user = $this->userRepository->find($cleanId);
+        $msg = '';
+        $form = $this->createForm(RegisterType::class, $user);
+        $form->handleRequest($request);
+        if($user){
+            if($form->isSubmitted() && $form->isValid()){
+                $pass = UtilsService::cleanInput($request->request->all('register')['password']['first']);
+                $hash = $userPasswordHasher->hashPassword($user, $pass);
+                $user->setPassword($hash);
+
+                $user->setName(UtilsService::cleanInput($request->request->all('register')['name']));
+                $user->setFirstname(UtilsService::cleanInput($request->request->all('register')['firstname']));
+                $user->setEmail(UtilsService::cleanInput($request->request->all('register')['email']));
+
+                $this->em->flush();
+
+                $msg = 'Le compte à été mis à jour';
+            }
+        }else{
+
+            $msg = 'Le compte n\'existe pas';
+        }
+        return $this->render('register/index.html.twig', [
+            'form' => $form->createView(),
+            'msg' => $msg,
+        ]);
+    }
 }

@@ -7,6 +7,6 @@ class UtilsService{
      * @return string
      */
     public static function cleanInput(string $input){
-        return htmlspecialchars(strip_tags(trim($input)));
+        return htmlspecialchars(strip_tags(trim($input, ENT_NOQUOTES)));
     }
 }
